@@ -12,20 +12,22 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.post("/user/login", {
-        email,
-        password,
-      });
+        const res = await api.post("/user/login", {
+            username: email, // 👈 este es el nombre correcto del campo
+            password,
+          });          
+      console.log("Login Response:", res.data);
       localStorage.setItem("token", res.data.token);
-      navigate("/");
+      navigate("/eventos");
     } catch (error) {
+      console.log(error);
       setError(error.response?.data?.message || "Error en login");
     }
   };
 
   return (
-    <div>
-      <h1>Login</h1>
+    <div style={{ padding: "40px" }}>
+      <h1 style={{ color: "green" }}>Login Page</h1>
       {error && <p style={{ color: "red" }}>{error}</p>}
       <form onSubmit={handleSubmit}>
         <input
