@@ -5,6 +5,7 @@ import EventosListPage from "../pages/EventosListPage";
 import EventoDetallePage from "../pages/EventoDetallePage";
 import MisEventosPage from "../pages/MisEventosPage";
 import CrearEventoPage from "../pages/CrearEventoPage";
+import EditarEventoPage from "../pages/EditarEventoPage"; // 👈 agregado
 import UbicacionesListPage from "../pages/UbicacionesListPage";
 import ProtectedRoute from "../components/ProtectedRoute";
 
@@ -30,6 +31,14 @@ const Router = () => {
           element={
             <ProtectedRoute>
               <CrearEventoPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/editar-evento/:id"
+          element={
+            <ProtectedRoute>
+              <EditarEventoPage />
             </ProtectedRoute>
           }
         />
