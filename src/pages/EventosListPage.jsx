@@ -13,7 +13,7 @@ const EventosListPage = () => {
       const params = new URLSearchParams();
       params.append("limit", limit);
       params.append("offset", page * limit);
-
+  
       if (filters.name) {
         params.append("name", filters.name);
       }
@@ -23,13 +23,20 @@ const EventosListPage = () => {
       if (filters.tags && filters.tags.length > 0) {
         filters.tags.forEach((tag) => params.append("tag", tag));
       }
-
-      const res = await api.get(`/event?${params.toString()}`);
+  
+      const token = localStorage.getItem('token');
+  
+      const headers = token
+        ? { Authorization: `Bearer ${token}` }
+        : {};
+  
+      const res = await api.get(`/event?${params.toString()}`, { headers });
       setEventos(res.data.collection || []);
     } catch (err) {
       console.error("Error al cargar eventos:", err);
     }
   };
+  
 
   useEffect(() => {
     fetchEventos();

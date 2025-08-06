@@ -4,13 +4,14 @@ import api from "../api/axios";
 const MisEventosPage = () => {
   const [eventos, setEventos] = useState([]);
   const [error, setError] = useState("");
+  const [mensajeEliminar, setMensajeEliminar] = useState("");
 
   useEffect(() => {
     const fetchEventos = async () => {
       try {
         const response = await api.get("/event/mine");
         console.log("Eventos recibidos:", response.data);
-        setEventos(response.data.collection); // ✅ usamos la propiedad correcta
+        setEventos(response.data.collection);
       } catch (err) {
         setError("No se pudieron cargar tus eventos.");
         console.error(err);
@@ -24,8 +25,11 @@ const MisEventosPage = () => {
     try {
       await api.delete(`/event/${id}`);
       setEventos((prev) => prev.filter((e) => e.id !== id));
+      setMensajeEliminar("");
     } catch (err) {
       console.error("Error al eliminar evento:", err);
+      const mensaje = err.response?.data?.message || "Error al eliminar el evento.";
+      setMensajeEliminar(mensaje);
     }
   };
 
@@ -33,37 +37,15 @@ const MisEventosPage = () => {
     window.location.href = `/editar-evento/${id}`;
   };
 
-  const handleCrearEventoTest = async () => {
-    try {
-      await api.post("/event", {
-        name: "Evento de prueba",
-        description: "Este es un evento de prueba creado desde el botón",
-        id_event_category: 1,
-        id_event_location: 1,
-        start_date: new Date().toISOString(),
-        duration_in_minutes: 60,
-        price: 0,
-        enabled_for_enrollment: true,
-        max_assistance: 20,
-      });
-
-      // Refrescar eventos luego de crear
-      const response = await api.get("/event/mine");
-      setEventos(response.data.collection);
-    } catch (err) {
-      console.error("Error al crear evento de prueba:", err);
-      setError("Error al crear evento de prueba.");
-    }
-  };
-
   return (
     <div>
       <h1>Mis Eventos</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <button onClick={handleCrearEventoTest}>
-        Crear evento de prueba
-      </button>
+      {mensajeEliminar && (
+        <p style={{ color: "red", marginTop: "10px" }}>{mensajeEliminar}</p>
+      )}
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
       {!error && eventos.length === 0 ? (
         <p>No tienes eventos creados aún.</p>
