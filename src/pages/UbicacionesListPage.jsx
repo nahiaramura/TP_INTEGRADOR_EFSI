@@ -13,7 +13,7 @@ const UbicacionesListPage = () => {
       const response = await axios.get("http://localhost:3001/api/event-location", {
         headers: {
           Authorization: `Bearer ${token}`,
-        },
+        }        
       });
 
       console.log("Ubicaciones recibidas:", response.data);
@@ -54,7 +54,7 @@ const UbicacionesListPage = () => {
       await axios.delete(`http://localhost:3001/api/event-location/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
-        },
+        }        
       });
       alert("Ubicación eliminada correctamente");
       fetchUbicaciones(); // refresca la lista
