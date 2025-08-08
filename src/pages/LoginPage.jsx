@@ -36,23 +36,15 @@ const LoginPage = () => {
   };
   
   return (
-    <div style={{ padding: "40px" }}>
-      <h1 style={{ color: "green" }}>Login Page</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Correo"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        /><br/>
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        /><br/>
-        <button type="submit">Ingresar</button>
+    <div className="container">
+      <h1 className="page-title">Iniciar sesión</h1>
+      {error && <div className="alert alert-danger mb-3">{error}</div>}
+      <form className="card form" onSubmit={handleSubmit}>
+        <input type="email" placeholder="Correo" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <input type="password" placeholder="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <div className="card-actions" style={{ justifyContent: "flex-end" }}>
+          <button type="submit" className="btn btn-primary">Ingresar</button>
+        </div>
       </form>
     </div>
   );

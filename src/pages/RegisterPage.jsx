@@ -29,35 +29,17 @@ const RegisterPage = () => {
   };
 
   return (
-    <div style={{ padding: "40px" }}>
-      <h1>Registro</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Nombre"
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-        /><br/>
-        <input
-          type="text"
-          placeholder="Apellido"
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-        /><br/>
-        <input
-          type="email"
-          placeholder="Email"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        /><br/>
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        /><br/>
-        <button type="submit">Registrarse</button>
+    <div className="container">
+      <h1 className="page-title">Registro</h1>
+      {error && <div className="alert alert-danger mb-3">{error}</div>}
+      <form className="card form" onSubmit={handleSubmit}>
+        <input type="text" placeholder="Nombre" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+        <input type="text" placeholder="Apellido" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+        <input type="email" placeholder="Email" value={username} onChange={(e) => setUsername(e.target.value)} />
+        <input type="password" placeholder="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <div className="card-actions" style={{ justifyContent: "flex-end" }}>
+          <button type="submit" className="btn btn-primary">Registrarse</button>
+        </div>
       </form>
     </div>
   );
