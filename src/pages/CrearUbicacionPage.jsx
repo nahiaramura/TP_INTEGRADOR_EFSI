@@ -51,75 +51,53 @@ const CrearUbicacionPage = () => {
   };
 
   return (
-    <div>
-      <h1>Crear Nueva Ubicación</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Nombre:</label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
+    <div className="container">
+      <h1 className="page-title">Crear Nueva Ubicación</h1>
+      <div className="card">
+        <form className="form" onSubmit={handleSubmit}>
+          <div className="form-row">
+            <label>Nombre</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} required />
+          </div>
 
-        <div>
-          <label>Dirección completa:</label>
-          <input
-            value={fullAddress}
-            onChange={(e) => setFullAddress(e.target.value)}
-            required
-          />
-        </div>
+          <div className="form-row">
+            <label>Dirección completa</label>
+            <input value={fullAddress} onChange={(e) => setFullAddress(e.target.value)} required />
+          </div>
 
-        <div>
-          <label>Latitud (opcional):</label>
-          <input
-            type="number"
-            step="any"
-            value={latitude}
-            onChange={(e) => setLatitude(e.target.value)}
-          />
-        </div>
+          <div className="grid" style={{gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))"}}>
+            <div className="form-row">
+              <label>Latitud (opcional)</label>
+              <input type="number" step="any" value={latitude} onChange={(e) => setLatitude(e.target.value)} />
+            </div>
+            <div className="form-row">
+              <label>Longitud (opcional)</label>
+              <input type="number" step="any" value={longitude} onChange={(e) => setLongitude(e.target.value)} />
+            </div>
+          </div>
 
-        <div>
-          <label>Longitud (opcional):</label>
-          <input
-            type="number"
-            step="any"
-            value={longitude}
-            onChange={(e) => setLongitude(e.target.value)}
-          />
-        </div>
+          <div className="grid" style={{gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))"}}>
+            <div className="form-row">
+              <label>Localidad</label>
+              <select value={selectedLocationId} onChange={(e) => setSelectedLocationId(e.target.value)} required>
+                <option value="">Seleccione una localidad</option>
+                {locations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>{loc.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-row">
+              <label>Capacidad máxima</label>
+              <input type="number" value={maxCapacity} onChange={(e) => setMaxCapacity(e.target.value)} required />
+            </div>
+          </div>
 
-        <div>
-          <label>Localidad:</label>
-          <select
-            value={selectedLocationId}
-            onChange={(e) => setSelectedLocationId(e.target.value)}
-            required
-          >
-            <option value="">Seleccione una localidad</option>
-            {locations.map((loc) => (
-              <option key={loc.id} value={loc.id}>
-                {loc.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label>Capacidad máxima:</label>
-          <input
-            type="number"
-            value={maxCapacity}
-            onChange={(e) => setMaxCapacity(e.target.value)}
-            required
-          />
-        </div>
-
-        <button type="submit">Crear</button>
-      </form>
+          <div className="card-actions">
+            <button className="btn btn-outline" type="button" onClick={() => navigate(-1)}>Cancelar</button>
+            <button className="btn btn-primary" type="submit">Crear</button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

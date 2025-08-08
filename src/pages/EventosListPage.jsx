@@ -48,21 +48,23 @@ const EventosListPage = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Eventos</h1>
+    <div className="container">
+      <h1 className="page-title">Eventos</h1>
       <BuscadorEventos onFiltrar={handleFiltro} />
-      
-      {eventos.length === 0 ? (
-        <p>No se encontraron eventos con los filtros seleccionados.</p>
-      ) : (
-        eventos.map((evento) => (
-          <EventoCard key={evento.id} evento={evento} />
-        ))
-      )}
-  
-      <div style={{ marginTop: "10px" }}>
-        <button disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Anterior</button>
-        <button onClick={() => setPage((p) => p + 1)}>Siguiente</button>
+
+      <div className="list mt-3">
+        {eventos.length === 0 ? (
+          <div className="empty">No se encontraron eventos con los filtros seleccionados.</div>
+        ) : (
+          eventos.map((evento) => (
+            <EventoCard key={evento.id} evento={evento} />
+          ))
+        )}
+      </div>
+
+      <div className="card-actions" style={{ justifyContent: "flex-end" }}>
+        <button className="btn" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Anterior</button>
+        <button className="btn btn-primary" onClick={() => setPage((p) => p + 1)}>Siguiente</button>
       </div>
     </div>
   );

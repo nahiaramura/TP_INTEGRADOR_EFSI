@@ -12,31 +12,37 @@ const Navbar = () => {
   };
 
   return (
-    <nav style={{
-      backgroundColor: "#f9f9f9",
-      borderBottom: "1px solid #ddd",
-      padding: "1rem",
-      display: "flex",
-      gap: "1rem"
-    }}>
-      <Link to="/eventos">Inicio</Link>
+    <header className="nav">
+      <div className="container nav-inner">
+        <div className="brand">
+          <div className="brand-badge"><span>EV</span></div>
+          <Link to="/eventos">Eventos</Link>
+        </div>
 
-      {isAuthenticated && (
-        <>
-          <Link to="/crear-evento">Crear Evento</Link>
-          <Link to="/mis-eventos">Mis Eventos</Link>
-          <Link to="/ubicaciones">Ubicaciones</Link>
-          <button onClick={handleLogout}>Cerrar sesión</button>
-        </>
-      )}
+        <nav className="nav-links">
+          {isAuthenticated ? (
+            <>
+              <Link to="/crear-evento">Crear Evento</Link>
+              <Link to="/mis-eventos">Mis Eventos</Link>
+              <Link to="/ubicaciones">Ubicaciones</Link>
+            </>
+          ) : (
+            <>
+              <Link to="/login">Login</Link>
+              <Link to="/register">Registrarse</Link>
+            </>
+          )}
+        </nav>
 
-      {!isAuthenticated && (
-        <>
-          <Link to="/login">Login</Link>
-          <Link to="/register">Registrarse</Link>
-        </>
-      )}
-    </nav>
+        <div className="nav-actions">
+          {isAuthenticated ? (
+            <button className="btn btn-outline" onClick={handleLogout}>Cerrar sesión</button>
+          ) : (
+            <></>
+          )}
+        </div>
+      </div>
+    </header>
   );
 };
 

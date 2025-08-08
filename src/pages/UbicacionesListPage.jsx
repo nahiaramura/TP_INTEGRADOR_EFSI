@@ -65,30 +65,32 @@ const UbicacionesListPage = () => {
   };
 
   return (
-    <div>
-      <h1>Ubicaciones</h1>
-
-      <button onClick={() => navigate("/crear-ubicacion")}>
-        Crear nueva ubicación
-      </button>
+    <div className="container">
+      <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:12}}>
+        <h1 className="page-title">Ubicaciones</h1>
+        <button className="btn btn-primary" onClick={() => navigate("/crear-ubicacion")}>Crear nueva ubicación</button>
+      </div>
 
       {loading ? (
-        <p>Cargando ubicaciones...</p>
+        <div className="empty">Cargando ubicaciones...</div>
       ) : ubicaciones.length === 0 ? (
-        <p>No tenés ubicaciones creadas.</p>
+        <div className="empty">No tenés ubicaciones creadas.</div>
       ) : (
-        <ul>
+        <div className="grid mt-3">
           {ubicaciones.map((ubic) => (
-            <li key={ubic.id}>
-              <strong>{ubic.name}</strong><br />
-              Capacidad máxima: {ubic.max_capacity}
-              <div style={{ marginTop: "5px" }}>
-                <button onClick={() => handleEditar(ubic.id)}>Editar</button>{" "}
-                <button onClick={() => handleEliminar(ubic.id)}>Eliminar</button>
+            <div key={ubic.id} className="card">
+              <div className="card-title">{ubic.name}</div>
+              <div className="card-subtle">Capacidad máxima: {ubic.max_capacity}</div>
+              {ubic.full_address && (
+                <div className="text-muted">{ubic.full_address}</div>
+              )}
+              <div className="card-actions">
+                <button className="btn btn-outline" onClick={() => handleEditar(ubic.id)}>Editar</button>
+                <button className="btn btn-danger" onClick={() => handleEliminar(ubic.id)}>Eliminar</button>
               </div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

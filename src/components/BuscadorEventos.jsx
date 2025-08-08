@@ -33,32 +33,26 @@ const BuscadorEventos = ({ onFiltrar }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
-      <input
-        type="text"
-        placeholder="Buscar por nombre"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <input
-        type="date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-      />
-      <div>
+    <form className="card form">
+      <div className="grid" style={{gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))"}}>
+        <input type="text" placeholder="Buscar por nombre" value={name} onChange={(e) => setName(e.target.value)} />
+        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+      </div>
+
+      <div className="text-muted">Etiquetas</div>
+      <div className="grid" style={{gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))"}}>
         {allTags.map((tag) => (
-          <label key={tag.id} style={{ marginRight: "10px" }}>
-            <input
-              type="checkbox"
-              value={tag.id}
-              checked={tags.includes(tag.id)}
-              onChange={() => toggleTag(tag.id)}
-            />
+          <label key={tag.id} style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <input type="checkbox" value={tag.id} checked={tags.includes(tag.id)} onChange={() => toggleTag(tag.id)} />
             {tag.name}
           </label>
         ))}
       </div>
-      <button type="submit">Buscar</button>
+
+      <div className="card-actions" style={{ justifyContent: "flex-end" }}>
+        <button type="button" className="btn btn-outline" onClick={() => { setName(""); setStartDate(""); setTags([]); onFiltrar({}); }}>Limpiar</button>
+        <button type="button" className="btn btn-primary" onClick={handleSubmit}>Buscar</button>
+      </div>
     </form>
   );
 };

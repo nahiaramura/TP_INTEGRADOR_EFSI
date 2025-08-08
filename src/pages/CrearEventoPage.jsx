@@ -52,31 +52,33 @@ const CrearEventoPage = () => {
   };
 
   return (
-    <div>
-      <h1>Crear Evento</h1>
-      <form onSubmit={handleSubmit}>
-        <input name="name" value={form.name} onChange={handleChange} placeholder="Nombre" required /><br/>
-        <textarea name="description" value={form.description} onChange={handleChange} placeholder="Descripción" required /><br/>
+    <div className="container">
+      <h1 className="page-title">Crear Evento</h1>
+      <form className="form card" onSubmit={handleSubmit}>
+        <input name="name" value={form.name} onChange={handleChange} placeholder="Nombre" required />
+        <textarea name="description" value={form.description} onChange={handleChange} placeholder="Descripción" required />
         
-        <input name="start_date" value={form.start_date} onChange={handleChange} type="datetime-local" required /><br/>
-        <input name="duration_in_minutes" value={form.duration_in_minutes} onChange={handleChange} type="number" placeholder="Duración (minutos)" required /><br/>
-        <input name="price" value={form.price} onChange={handleChange} type="number" placeholder="Precio" required /><br/>
-
+        <input name="start_date" value={form.start_date} onChange={handleChange} type="datetime-local" required />
+        <input name="duration_in_minutes" value={form.duration_in_minutes} onChange={handleChange} type="number" placeholder="Duración (minutos)" required />
+        <input name="price" value={form.price} onChange={handleChange} type="number" placeholder="Precio" required />
+ 
         <select name="id_event_category" value={form.id_event_category} onChange={handleChange} required>
           <option value="">Seleccionar categoría</option>
           {categorias.map(cat => (
             <option key={cat.id} value={cat.id}>{cat.name}</option>
           ))}
-        </select><br/>
-
+        </select>
+ 
         <select name="id_event_location" value={form.id_event_location} onChange={handleChange} required>
           <option value="">Seleccionar ubicación</option>
           {ubicaciones.map(ub => (
             <option key={ub.id} value={ub.id}>{ub.name}</option>
           ))}
-        </select><br/>
-
-        <button type="submit">Crear</button>
+        </select>
+ 
+        <div className="card-actions">
+          <button type="submit" className="btn btn-primary">Crear</button>
+        </div>
       </form>
     </div>
   );
