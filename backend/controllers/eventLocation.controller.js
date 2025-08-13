@@ -1,88 +1,208 @@
 // controllers/eventLocation.controller.js
-import pool from '../db/index.js';
+import pool from "../db/index.js";
 
+/**
+ * GET /api/event-location
+ * Lista las ubicaciones creadas por el usuario autenticado
+ * Query params opcionales: limit, offset
+ */
 export const listEventLocations = async (req, res) => {
-    const userId = req.userId;
-    try {
-      const [rows] = await pool.query(
-        'SELECT id, name, max_capacity FROM event_locations WHERE id_creator_user = ?',
-        [userId]
-      );
-      res.status(200).json({ collection: rows }); // 👈 Asegurate de devolver así
-    } catch (error) {
-      console.error('Error al obtener ubicaciones:', error);
-      res.status(500).json({ message: 'Error al obtener ubicaciones' });
-    }
-  };
-  
+  try {
+    const userId = req.user?.id || req.userId;
+    if (!userId) return res.status(401).json({ message: "No autorizado." });
 
+    const limit  = Number.parseInt(req.query.limit, 10)  || 20;
+    const offset = Number.parseInt(req.query.offset, 10) || 0;
+
+    console.log("[listEventLocations] userId:", userId, "limit:", limit, "offset:", offset);
+
+    const { rows } = await pool.query(
+      `SELECT id, id_location, name, full_address, max_capacity, latitude, longitude, id_creator_user
+         FROM event_locations
+        WHERE id_creator_user = $1
+        ORDER BY id DESC
+        LIMIT $2 OFFSET $3`,
+      [userId, limit, offset]
+    );
+
+    console.log("[listEventLocations] rows:", rows.length);
+    return res.status(200).json({ collection: rows });
+  } catch (error) {
+    console.error("Error al obtener ubicaciones:", error);
+    return res.status(500).json({ message: "Error al obtener ubicaciones", error: error.message });
+  }
+};
+/**
+ * POST /api/event-location
+ * Crea una nueva ubicación de evento para el usuario autenticado
+ * Body: { name, full_address, max_capacity, latitude?, longitude?, id_location }
+ */
 export const createEventLocation = async (req, res) => {
-  const userId = req.userId;
-  const { name, full_address, max_capacity, latitude, longitude } = req.body;
-
-  if (!name || !max_capacity) {
-    return res.status(400).json({ message: 'Faltan campos requeridos (name, max_capacity)' });
-  }
-
   try {
-    const [result] = await pool.query(
-      'INSERT INTO event_locations (name, full_address, max_capacity, latitude, longitude, id_creator_user) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, full_address, max_capacity, latitude, longitude, userId]
+    const userId = req.user?.id || req.userId;
+    if (!userId) return res.status(401).json({ message: "No autorizado." });
+
+    const {
+      name,
+      full_address,
+      max_capacity,
+      latitude,
+      longitude,
+      id_location, // FK a locations.id
+    } = req.body;
+
+    if (!name || name.trim().length < 3) {
+      return res.status(400).json({ message: "Nombre inválido (mínimo 3 caracteres)." });
+    }
+    if (!id_location || Number.isNaN(Number(id_location))) {
+      return res.status(400).json({ message: "Seleccione una localidad válida (id_location)." });
+    }
+    if (!max_capacity || Number(max_capacity) <= 0) {
+      return res.status(400).json({ message: "Capacidad máxima debe ser > 0." });
+    }
+
+    // Verificar FK de locations
+    const loc = await pool.query("SELECT id FROM locations WHERE id = $1", [Number(id_location)]);
+    if (loc.rowCount === 0) return res.status(400).json({ message: "La localidad no existe." });
+
+    const { rows } = await pool.query(
+      `INSERT INTO event_locations
+         (id_location, name, full_address, max_capacity, latitude, longitude, id_creator_user)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, id_location, name, full_address, max_capacity, latitude, longitude, id_creator_user`,
+      [
+        Number(id_location),
+        name.trim(),
+        (full_address ?? "").trim() || null,
+        Number(max_capacity),
+        latitude === "" || latitude === null || latitude === undefined ? null : Number(latitude),
+        longitude === "" || longitude === null || longitude === undefined ? null : Number(longitude),
+        userId,
+      ]
     );
-    res.status(201).json({ id: result.insertId });
+
+    return res.status(201).json({ success: true, data: rows[0] });
   } catch (error) {
-    console.error('Error al crear ubicación:', error);
-    res.status(500).json({ message: 'Error al crear ubicación' });
+    console.error("Error al crear ubicación:", error);
+    if (error.code === "23503") {
+      return res.status(400).json({ message: "FK inválida (id_location o usuario)." });
+    }
+    return res.status(500).json({ message: "Error al crear ubicación", error: error.message });
   }
 };
 
+/**
+ * PUT /api/event-location/:id
+ * Actualiza una ubicación propia
+ */
 export const updateEventLocation = async (req, res) => {
-  const userId = req.userId;
-  const { id } = req.params;
-  const { name, full_address, max_capacity, latitude, longitude } = req.body;
-
   try {
-    const [result] = await pool.query(
-      'UPDATE event_locations SET name = ?, full_address = ?, max_capacity = ?, latitude = ?, longitude = ? WHERE id = ? AND id_creator_user = ?',
-      [name, full_address, max_capacity, latitude, longitude, id, userId]
-    );
+    const userId = req.user?.id || req.userId;
+    if (!userId) return res.status(401).json({ message: "No autorizado." });
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Ubicación no encontrada' });
+    const { id } = req.params;
+    const {
+      name,
+      full_address,
+      max_capacity,
+      latitude,
+      longitude,
+      id_location, // opcional
+    } = req.body;
+
+    if (!id || Number.isNaN(Number(id))) {
+      return res.status(400).json({ message: "ID inválido." });
+    }
+    if (name !== undefined && name.trim().length < 3) {
+      return res.status(400).json({ message: "Nombre inválido (mínimo 3 caracteres)." });
+    }
+    if (max_capacity !== undefined && Number(max_capacity) <= 0) {
+      return res.status(400).json({ message: "Capacidad máxima debe ser > 0." });
+    }
+    if (id_location !== undefined && Number.isNaN(Number(id_location))) {
+      return res.status(400).json({ message: "Seleccione una localidad válida (id_location)." });
     }
 
-    res.status(200).json({ message: 'Ubicación actualizada' });
+    if (id_location !== undefined) {
+      const loc = await pool.query("SELECT id FROM locations WHERE id = $1", [Number(id_location)]);
+      if (loc.rowCount === 0) return res.status(400).json({ message: "La localidad no existe." });
+    }
+
+    const { rows } = await pool.query(
+      `UPDATE event_locations
+          SET
+            id_location   = COALESCE($1, id_location),
+            name          = COALESCE($2, name),
+            full_address  = COALESCE($3, full_address),
+            max_capacity  = COALESCE($4, max_capacity),
+            latitude      = COALESCE($5, latitude),
+            longitude     = COALESCE($6, longitude)
+        WHERE id = $7 AND id_creator_user = $8
+        RETURNING id, id_location, name, full_address, max_capacity, latitude, longitude, id_creator_user`,
+      [
+        id_location !== undefined ? Number(id_location) : null,
+        name !== undefined ? name.trim() : null,
+        full_address !== undefined ? ((full_address ?? "").trim() || null) : null,
+        max_capacity !== undefined ? Number(max_capacity) : null,
+        latitude !== undefined ? (latitude === "" || latitude === null ? null : Number(latitude)) : null,
+        longitude !== undefined ? (longitude === "" || longitude === null ? null : Number(longitude)) : null,
+        Number(id),
+        userId,
+      ]
+    );
+
+    if (rows.length === 0) return res.status(404).json({ message: "Ubicación no encontrada." });
+    return res.status(200).json({ success: true, data: rows[0] });
   } catch (error) {
-    console.error('Error al actualizar ubicación:', error);
-    res.status(500).json({ message: 'Error al actualizar ubicación' });
+    console.error("Error al actualizar ubicación:", error);
+    if (error.code === "23503") {
+      return res.status(400).json({ message: "FK inválida (id_location)." });
+    }
+    return res.status(500).json({ message: "Error al actualizar ubicación", error: error.message });
   }
 };
 
+/**
+ * DELETE /api/event-location/:id
+ * Elimina una ubicación propia (si no está referenciada por eventos)
+ */
 export const deleteEventLocation = async (req, res) => {
-  const userId = req.userId;
-  const { id } = req.params;
-
   try {
-    const [result] = await pool.query(
-      'DELETE FROM event_locations WHERE id = ? AND id_creator_user = ?',
-      [id, userId]
-    );
+    const userId = req.user?.id || req.userId;
+    if (!userId) return res.status(401).json({ message: "No autorizado." });
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Ubicación no encontrada' });
+    const { id } = req.params;
+    if (!id || Number.isNaN(Number(id))) {
+      return res.status(400).json({ message: "ID inválido." });
     }
 
-    res.status(200).json({ message: 'Ubicación eliminada' });
+    const result = await pool.query(
+      "DELETE FROM event_locations WHERE id = $1 AND id_creator_user = $2 RETURNING id",
+      [Number(id), userId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Ubicación no encontrada." });
+    }
+
+    return res.status(200).json({ success: true, message: "Ubicación eliminada." });
   } catch (error) {
-    console.error('Error al eliminar ubicación:', error);
-    res.status(500).json({ message: 'Error al eliminar ubicación' });
+    console.error("Error al eliminar ubicación:", error);
+    if (error.code === "23503") {
+      return res.status(400).json({ message: "No se puede eliminar: la ubicación está en uso por eventos." });
+    }
+    return res.status(500).json({ message: "Error al eliminar ubicación", error: error.message });
   }
 };
-// controllers/eventLocation.controller.js (al final del archivo)
+
+/**
+ * GET /api/location
+ * Lista todas las localidades con su provincia (para poblar selects)
+ */
 export const listAllLocationsWithProvince = async (req, res) => {
   try {
-    const [rows] = await pool.query(`
-      SELECT 
+    const { rows } = await pool.query(`
+      SELECT
         l.id,
         l.name AS location_name,
         p.name AS province_name
@@ -91,9 +211,9 @@ export const listAllLocationsWithProvince = async (req, res) => {
       ORDER BY p.name, l.name
     `);
 
-    res.status(200).json(rows);
+    return res.status(200).json({ collection: rows });
   } catch (error) {
     console.error("Error al obtener localidades con provincia:", error);
-    res.status(500).json({ message: "Error al obtener localidades" });
+    return res.status(500).json({ message: "Error al obtener localidades", error: error.message });
   }
 };

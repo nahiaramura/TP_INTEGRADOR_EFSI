@@ -1,50 +1,63 @@
+// routes/eventLocation.routes.js
 import express from 'express';
 import pool from '../db/index.js';
 import { verifyToken } from '../middlewares/auth.middleware.js';
+
 const router = express.Router();
 
-// ✅ POST /api/event-location
+// Crear ubicación
 router.post('/', verifyToken, async (req, res) => {
   const { name, full_address, latitude, longitude, id_location, max_capacity } = req.body;
-  const id_creator_user = req.user.id;
+  const id_creator_user = req.user?.id || req.userId;
 
-  if (!name || name.length < 3 || !full_address || full_address.length < 3) {
+  if (!name || name.trim().length < 3 || !full_address || full_address.trim().length < 3) {
     return res.status(400).json({ error: 'El nombre o la dirección son inválidos (mínimo 3 caracteres).' });
   }
-
-  if (!id_location || isNaN(id_location)) {
+  if (!id_location || Number.isNaN(Number(id_location))) {
     return res.status(400).json({ error: 'El id_location es inválido o inexistente.' });
   }
-
-  if (!max_capacity || max_capacity <= 0) {
+  if (!max_capacity || Number(max_capacity) <= 0) {
     return res.status(400).json({ error: 'La capacidad máxima debe ser mayor a cero.' });
   }
 
   try {
-    const locationCheck = await pool.query('SELECT * FROM locations WHERE id = $1', [id_location]);
+    const locationCheck = await pool.query(
+      'SELECT id FROM locations WHERE id = $1',
+      [Number(id_location)]
+    );
     if (locationCheck.rowCount === 0) {
       return res.status(400).json({ error: 'El id_location no existe.' });
     }
 
     const insert = await pool.query(
-      `INSERT INTO event_locations (name, full_address, latitude, longitude, id_location, max_capacity, id_creator_user)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [name, full_address, latitude, longitude, id_location, max_capacity, id_creator_user]
+      `INSERT INTO event_locations
+         (name, full_address, latitude, longitude, id_location, max_capacity, id_creator_user)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, name, full_address, latitude, longitude, id_location, max_capacity, id_creator_user`,
+      [
+        name.trim(),
+        full_address.trim(),
+        (latitude === '' || latitude == null) ? null : Number(latitude),
+        (longitude === '' || longitude == null) ? null : Number(longitude),
+        Number(id_location),
+        Number(max_capacity),
+        id_creator_user
+      ]
     );
 
-    return res.status(201).json(insert.rows[0]);
+    return res.status(201).json({ success: true, data: insert.rows[0] });
   } catch (err) {
     console.error('Error al crear event_location:', err);
     return res.status(500).json({ error: 'Error interno del servidor al crear la ubicación.' });
   }
 });
 
-// ✅ GET /api/event-location/:id
+// Obtener 1 ubicación del usuario
 router.get('/:id', verifyToken, async (req, res) => {
-  const id = parseInt(req.params.id);
-  const id_creator_user = req.user.id;
+  const id = Number(req.params.id);
+  const id_creator_user = req.user?.id || req.userId;
 
-  if (isNaN(id)) {
+  if (!Number.isInteger(id)) {
     return res.status(400).json({ error: 'ID inválido.' });
   }
 
@@ -65,74 +78,91 @@ router.get('/:id', verifyToken, async (req, res) => {
   }
 });
 
-// ✅ PUT /api/event-location/:id
+// Actualizar ubicación
 router.put('/:id', verifyToken, async (req, res) => {
-  const id = parseInt(req.params.id);
-  const id_creator_user = req.user.id;
+  const id = Number(req.params.id);
+  const id_creator_user = req.user?.id || req.userId;
   const { name, full_address, latitude, longitude, id_location, max_capacity } = req.body;
 
-  if (!name || name.length < 3 || !full_address || full_address.length < 3) {
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: 'ID inválido.' });
+  }
+  if (!name || name.trim().length < 3 || !full_address || full_address.trim().length < 3) {
     return res.status(400).json({ error: 'Nombre o dirección inválidos.' });
   }
-
-  if (!id_location || isNaN(id_location)) {
+  if (!id_location || Number.isNaN(Number(id_location))) {
     return res.status(400).json({ error: 'ID de localidad inválido.' });
   }
-
-  if (!max_capacity || max_capacity <= 0) {
+  if (!max_capacity || Number(max_capacity) <= 0) {
     return res.status(400).json({ error: 'La capacidad máxima debe ser mayor a cero.' });
   }
 
   try {
     const result = await pool.query(
       `UPDATE event_locations
-       SET name = $1, full_address = $2, latitude = $3, longitude = $4, id_location = $5, max_capacity = $6
+         SET name = $1,
+             full_address = $2,
+             latitude = $3,
+             longitude = $4,
+             id_location = $5,
+             max_capacity = $6
        WHERE id = $7 AND id_creator_user = $8
-       RETURNING *`,
-      [name, full_address, latitude, longitude, id_location, max_capacity, id, id_creator_user]
+       RETURNING id, name, full_address, latitude, longitude, id_location, max_capacity, id_creator_user`,
+      [
+        name.trim(),
+        full_address.trim(),
+        (latitude === '' || latitude == null) ? null : Number(latitude),
+        (longitude === '' || longitude == null) ? null : Number(longitude),
+        Number(id_location),
+        Number(max_capacity),
+        id,
+        id_creator_user
+      ]
     );
 
     if (result.rowCount === 0) {
       return res.status(404).json({ error: 'Ubicación no encontrada o no te pertenece.' });
     }
 
-    return res.status(200).json(result.rows[0]);
+    return res.status(200).json({ success: true, data: result.rows[0] });
   } catch (err) {
     console.error('Error al actualizar event_location:', err);
     return res.status(500).json({ error: 'Error interno del servidor al actualizar la ubicación.' });
   }
 });
 
-// ✅ GET /api/event-location
-router.get('/', async (req, res) => {
-  const id_creator_user = req.userId;
-
+// Listar MIS ubicaciones  ✅ ahora protegido y con {collection: ...}
+router.get('/', verifyToken, async (req, res) => {
+  const id_creator_user = req.user?.id || req.userId;
 
   try {
     const result = await pool.query(
-      `SELECT id, name, max_capacity FROM event_locations WHERE id_creator_user = $1`,
+      `SELECT id, name, max_capacity, id_location, full_address, latitude, longitude
+         FROM event_locations
+        WHERE id_creator_user = $1
+        ORDER BY id DESC`,
       [id_creator_user]
     );
 
-    return res.status(200).json(result.rows);
+    return res.status(200).json({ collection: result.rows }); // 👈 el front espera "collection"
   } catch (err) {
     console.error('Error al obtener las ubicaciones del usuario:', err);
     return res.status(500).json({ error: 'Error interno del servidor al listar ubicaciones.' });
   }
 });
-// ✅ DELETE /api/event-location/:id
-// Elimina una ubicación si pertenece al usuario autenticado
-router.delete('/:id', verifyToken, async (req, res) => {
-  const id = parseInt(req.params.id);
-  const id_creator_user = req.user.id;
 
-  if (isNaN(id)) {
+// Eliminar ubicación
+router.delete('/:id', verifyToken, async (req, res) => {
+  const id = Number(req.params.id);
+  const id_creator_user = req.user?.id || req.userId;
+
+  if (!Number.isInteger(id)) {
     return res.status(400).json({ error: 'ID inválido.' });
   }
 
   try {
     const result = await pool.query(
-      `DELETE FROM event_locations WHERE id = $1 AND id_creator_user = $2 RETURNING *`,
+      `DELETE FROM event_locations WHERE id = $1 AND id_creator_user = $2 RETURNING id`,
       [id, id_creator_user]
     );
 
