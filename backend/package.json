@@ -1,0 +1,29 @@
+{
+  "name": "tp_11_dai",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "bd/index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "expo": "~53.0.17",
+    "expo-status-bar": "~2.2.3",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.0",
+    "pg": "^8.11.1",
+    "react": "19.0.0",
+    "react-native": "0.79.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "nodemon": "^3.1.10"
+  },
+  "private": true
+}

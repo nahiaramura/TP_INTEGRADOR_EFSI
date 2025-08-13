@@ -1,0 +1,141 @@
+-- CREAR TABLA provinces
+CREATE TABLE provinces (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    latitude DECIMAL(10,8),
+    longitude DECIMAL(11,8),
+    display_order INTEGER
+);
+
+-- CREAR TABLA locations
+CREATE TABLE locations (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    id_province INTEGER REFERENCES provinces(id),
+    latitude DECIMAL(10,8),
+    longitude DECIMAL(11,8)
+);
+
+-- CREAR TABLA users
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+
+-- CREAR TABLA event_locations
+CREATE TABLE event_locations (
+    id SERIAL PRIMARY KEY,
+    id_location INTEGER REFERENCES locations(id),
+    name VARCHAR(255) NOT NULL,
+    full_address VARCHAR(255),
+    max_capacity INTEGER NOT NULL,
+    latitude DECIMAL(10,8),
+    longitude DECIMAL(11,8),
+    id_creator_user INTEGER REFERENCES users(id)
+);
+
+-- CREAR TABLA events
+CREATE TABLE events (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    id_event_category INTEGER,
+    id_event_location INTEGER REFERENCES event_locations(id),
+    start_date TIMESTAMP,
+    duration_in_minutes INTEGER,
+    price NUMERIC(12,2),
+    enabled_for_enrollment BOOLEAN DEFAULT FALSE,
+    max_assistance INTEGER,
+    id_creator_user INTEGER REFERENCES users(id)
+);
+
+-- CREAR TABLA event_enrollments
+CREATE TABLE event_enrollments (
+    id SERIAL PRIMARY KEY,
+    id_event INTEGER REFERENCES events(id) ON DELETE CASCADE,
+    id_user INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    description TEXT,
+    registration_date_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    attended BOOLEAN DEFAULT FALSE,
+    observations TEXT,
+    rating INTEGER CHECK (rating BETWEEN 1 AND 5)
+);
+
+-- CREAR TABLA tags
+CREATE TABLE tags (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+
+-- TABLA INTERMEDIA: eventos <-> tags
+CREATE TABLE event_tags (
+    id SERIAL PRIMARY KEY,
+    id_event INTEGER REFERENCES events(id) ON DELETE CASCADE,
+    id_tag INTEGER REFERENCES tags(id) ON DELETE CASCADE
+);
+
+-- CREAR TABLA event_categories
+CREATE TABLE event_categories (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    display_order INTEGER
+);
+
+
+-- INSERTS EN provinces
+INSERT INTO provinces (name, full_name, latitude, longitude, display_order) VALUES
+('Buenos Aires', 'Provincia de Buenos Aires', -34.603722, -58.381592, 1),
+('Córdoba', 'Provincia de Córdoba', -31.420083, -64.188776, 2),
+('Santa Fe', 'Provincia de Santa Fe', -31.633329, -60.700000, 3);
+
+-- INSERTS EN locations
+INSERT INTO locations (name, id_province, latitude, longitude) VALUES
+('CABA', 1, -34.603722, -58.381592),
+('Córdoba Capital', 2, -31.420083, -64.188776),
+('Rosario', 3, -32.946820, -60.639320);
+
+-- INSERTS EN users
+INSERT INTO users (first_name, last_name, username, password) VALUES
+('Juan', 'Pérez', 'juan', 'hashed_password_1'),
+('Ana', 'Gómez', 'ana', 'hashed_password_2'),
+('Luis', 'Martínez', 'luis', 'hashed_password_3');
+
+-- INSERTS EN event_locations
+INSERT INTO event_locations (id_location, name, full_address, max_capacity, latitude, longitude, id_creator_user) VALUES
+(1, 'Movistar Arena', 'Humboldt 450, CABA', 15000, -34.5935, -58.4474, 1),
+(2, 'Estadio Mario Kempes', 'Av. Cárcano S/N, Córdoba', 50000, -31.3756, -64.2383, 2),
+(3, 'Parque España', 'Sarmiento 101, Rosario', 3000, -32.9459, -60.6347, 3);
+
+-- INSERTS EN event_categories
+INSERT INTO event_categories (name, display_order) VALUES
+('Conciertos', 1),
+('Conferencias', 2),
+('Talleres', 3);
+
+-- INSERTS EN events
+INSERT INTO events (name, description, id_event_category, id_event_location, start_date, duration_in_minutes, price, enabled_for_enrollment, max_assistance, id_creator_user) VALUES
+('Concierto Rock', 'Show de rock nacional', 1, 1, '2025-08-15 21:00:00', 120, 5000.00, TRUE, 14000, 1),
+('Congreso Tech', 'Tecnología e innovación', 2, 2, '2025-09-10 09:00:00', 360, 10000.00, TRUE, 1000, 2),
+('Taller de pintura', 'Clases intensivas de pintura artística', 3, 3, '2025-08-20 15:00:00', 90, 1500.00, TRUE, 50, 3);
+
+-- INSERTS EN event_enrollments
+INSERT INTO event_enrollments (id_event, id_user, description, attended, observations, rating) VALUES
+(1, 1, 'Asistente VIP', TRUE, 'Muy buen sonido', 5),
+(2, 2, 'Ponente', TRUE, 'Excelente organización', 4),
+(3, 3, 'Participante activo', FALSE, 'No pudo asistir', NULL);
+
+-- INSERTS EN tags
+INSERT INTO tags (name) VALUES
+('Música'),
+('Tecnología'),
+('Arte');
+
+-- INSERTS EN event_tags
+INSERT INTO event_tags (id_event, id_tag) VALUES
+(1, 1), -- Concierto Rock -> Música
+(2, 2), -- Congreso Tech -> Tecnología
+(3, 3); -- Taller de pintura -> Arte
