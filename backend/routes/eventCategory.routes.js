@@ -1,4 +1,3 @@
-// En eventCategory.routes.js
 import express from "express";
 import pool from "../db/index.js";
 

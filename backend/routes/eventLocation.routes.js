@@ -1,11 +1,9 @@
-// routes/eventLocation.routes.js
 import express from 'express';
 import pool from '../db/index.js';
 import { verifyToken } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-// Crear ubicación
 router.post('/', verifyToken, async (req, res) => {
   const { name, full_address, latitude, longitude, id_location, max_capacity } = req.body;
   const id_creator_user = req.user?.id || req.userId;
@@ -52,7 +50,6 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
-// Obtener 1 ubicación del usuario
 router.get('/:id', verifyToken, async (req, res) => {
   const id = Number(req.params.id);
   const id_creator_user = req.user?.id || req.userId;
@@ -78,7 +75,6 @@ router.get('/:id', verifyToken, async (req, res) => {
   }
 });
 
-// Actualizar ubicación
 router.put('/:id', verifyToken, async (req, res) => {
   const id = Number(req.params.id);
   const id_creator_user = req.user?.id || req.userId;
@@ -131,7 +127,6 @@ router.put('/:id', verifyToken, async (req, res) => {
   }
 });
 
-// Listar MIS ubicaciones  ✅ ahora protegido y con {collection: ...}
 router.get('/', verifyToken, async (req, res) => {
   const id_creator_user = req.user?.id || req.userId;
 
@@ -144,14 +139,13 @@ router.get('/', verifyToken, async (req, res) => {
       [id_creator_user]
     );
 
-    return res.status(200).json({ collection: result.rows }); // 👈 el front espera "collection"
+    return res.status(200).json({ collection: result.rows });
   } catch (err) {
     console.error('Error al obtener las ubicaciones del usuario:', err);
     return res.status(500).json({ error: 'Error interno del servidor al listar ubicaciones.' });
   }
 });
 
-// Eliminar ubicación
 router.delete('/:id', verifyToken, async (req, res) => {
   const id = Number(req.params.id);
   const id_creator_user = req.user?.id || req.userId;

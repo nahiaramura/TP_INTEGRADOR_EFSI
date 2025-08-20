@@ -1,10 +1,8 @@
-// routes/location.routes.js
 import express from "express";
 import pool from "../db/index.js";
 
 const router = express.Router();
 
-// GET /api/locations — devuelve todas las localidades con su provincia
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(`

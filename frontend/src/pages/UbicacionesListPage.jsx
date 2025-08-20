@@ -18,10 +18,8 @@ const UbicacionesListPage = () => {
 
       console.log("Ubicaciones recibidas:", response.data);
 
-      // Adaptativo: soporta backend con o sin "collection"
       const data = response.data?.collection ?? response.data;
 
-      // Validación final
       if (Array.isArray(data)) {
         setUbicaciones(data);
       } else {
@@ -57,7 +55,7 @@ const UbicacionesListPage = () => {
         }        
       });
       alert("Ubicación eliminada correctamente");
-      fetchUbicaciones(); // refresca la lista
+      fetchUbicaciones();
     } catch (err) {
       console.error(err);
       alert("Error al eliminar ubicación");

@@ -9,27 +9,22 @@ import {
   deleteEnrollment,
   listEventLocations,
   listMyEvents,
-  getEnrollmentStatus // ✅ asegurate de tener esto exportado
+  getEnrollmentStatus
 } from '../controllers/event.controller.js';
 
-import { verifyToken } from '../middlewares/auth.middleware.js'; // ✅ import correcto
+import { verifyToken } from '../middlewares/auth.middleware.js';
 
-const router = express.Router(); // ✅ primero se declara
+const router = express.Router();
 
-// Rutas de eventos
-router.get('/', listEvents); // ✅ ahora es pública
+router.get('/', listEvents);
 router.get('/mine', verifyToken, listMyEvents);
 router.get('/:id', getEventDetail);
 router.post('/', verifyToken, createEvent);
 router.put('/:id', verifyToken, updateEvent);
 router.delete('/:id', verifyToken, deleteEvent);
-
-// Inscripciones
 router.post('/:id/enrollment', verifyToken, enrollUser);
 router.delete('/:id/enrollment', verifyToken, deleteEnrollment);
 router.get('/:id/enrollment', verifyToken, getEnrollmentStatus);
-
-// (⚠️ esta línea estaba mal ubicada y duplicada)
-router.get('/locations', verifyToken, listEventLocations); // 🛠️ si la querés mantener
+router.get('/locations', verifyToken, listEventLocations);
 
 export default router;

@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import EditarUbicacionPage from "../pages/EditarUbicacionPage"; // ✅
+import EditarUbicacionPage from "../pages/EditarUbicacionPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import EventosListPage from "../pages/EventosListPage";
@@ -9,7 +9,7 @@ import MisEventosPage from "../pages/MisEventosPage";
 import CrearEventoPage from "../pages/CrearEventoPage";
 import EditarEventoPage from "../pages/EditarEventoPage";
 import UbicacionesListPage from "../pages/UbicacionesListPage";
-import CrearUbicacionPage from "../pages/CrearUbicacionPage"; // ✅ NUEVO
+import CrearUbicacionPage from "../pages/CrearUbicacionPage";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 const Router = () => {

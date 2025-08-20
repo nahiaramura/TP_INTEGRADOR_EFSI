@@ -1,9 +1,4 @@
-// controllers/event.controller.js
 import pool from "../db/index.js";
-
-// -------------------------------
-// Listar MIS eventos
-// -------------------------------
 const listMyEvents = async (req, res) => {
   const userId = req.user.id;
 
@@ -48,9 +43,6 @@ const listMyEvents = async (req, res) => {
   }
 };
 
-// -------------------------------
-// Listar eventos (con filtros)
-// -------------------------------
 const listEvents = async (req, res) => {
   const limit  = parseInt(req.query.limit, 10)  || 15;
   const offset = parseInt(req.query.offset, 10) || 0;
@@ -132,9 +124,6 @@ const listEvents = async (req, res) => {
   }
 };
 
-// -------------------------------
-// Detalle de evento (FIX: trae aliases que usa el front)
-// -------------------------------
 const getEventDetail = async (req, res) => {
   const id = Number(req.params.id);
 
@@ -164,7 +153,6 @@ const getEventDetail = async (req, res) => {
 
     const base = evQ.rows[0];
 
-    // Tags
     const tagsRes = await pool.query(`
       SELECT t.id, t.name
       FROM event_tags et
@@ -173,7 +161,6 @@ const getEventDetail = async (req, res) => {
       ORDER BY t.name
     `, [id]);
 
-    // Inscriptos (usuarios)
     const enrollRes = await pool.query(`
       SELECT 
         u.id,
@@ -201,9 +188,6 @@ const getEventDetail = async (req, res) => {
   }
 };
 
-// -------------------------------
-// Actualizar evento
-// -------------------------------
 const updateEvent = async (req, res) => {
   const id = Number(req.params.id);
   const {
@@ -288,9 +272,6 @@ const updateEvent = async (req, res) => {
   }
 };
 
-// -------------------------------
-// Eliminar evento
-// -------------------------------
 const deleteEvent = async (req, res) => {
   const id = Number(req.params.id);
   const userId = req.user.id;
@@ -319,9 +300,6 @@ const deleteEvent = async (req, res) => {
   }
 };
 
-// -------------------------------
-// Inscribir usuario
-// -------------------------------
 const enrollUser = async (req, res) => {
   const id_event = Number(req.params.id);
   const id_user  = req.user.id;
@@ -344,9 +322,6 @@ const enrollUser = async (req, res) => {
   }
 };
 
-// -------------------------------
-// Cancelar inscripción
-// -------------------------------
 const deleteEnrollment = async (req, res) => {
   try {
     const id_event = Number(req.params.id);
@@ -383,12 +358,9 @@ const deleteEnrollment = async (req, res) => {
   }
 };
 
-// -------------------------------
-// Listar MIS ubicaciones (FIX userId + limit/offset)
-// -------------------------------
 const listEventLocations = async (req, res) => {
   try {
-    const userId    = req.user.id;                       // <-- FIX
+    const userId    = req.user.id;                  
     const limitQ    = parseInt(req.query.limit, 10);
     const offsetQ   = parseInt(req.query.offset, 10);
     const safeLimit = Number.isInteger(limitQ)  ? limitQ  : 10;
@@ -400,7 +372,7 @@ const listEventLocations = async (req, res) => {
         WHERE id_creator_user = $1
         ORDER BY id DESC
         LIMIT $2 OFFSET $3`,
-      [userId, safeLimit, safeOff]                       // <-- FIX
+      [userId, safeLimit, safeOff]
     );
 
     return res.status(200).json({ collection: result.rows });
@@ -410,9 +382,6 @@ const listEventLocations = async (req, res) => {
   }
 };
 
-// -------------------------------
-// Estado de inscripción
-// -------------------------------
 const getEnrollmentStatus = async (req, res) => {
   const id_event = Number(req.params.id);
   const id_user  = req.user.id;
@@ -428,9 +397,7 @@ const getEnrollmentStatus = async (req, res) => {
     return res.status(500).json({ message: "Error verificando inscripción" });
   }
 };
-// -------------------------------
-// Crear evento
-// -------------------------------
+
 const createEvent = async (req, res) => {
   const {
     name,
@@ -445,7 +412,6 @@ const createEvent = async (req, res) => {
   } = req.body;
 
   try {
-    // Validaciones mínimas
     if (!name || name.trim().length < 3) {
       return res.status(400).json({ success: false, message: "El nombre es obligatorio y debe tener al menos 3 caracteres." });
     }
@@ -464,7 +430,6 @@ const createEvent = async (req, res) => {
 
     const id_creator_user = req.user.id;
 
-    // Validar ubicación y capacidad
     const locResult = await pool.query(
       `SELECT max_capacity FROM event_locations WHERE id = $1`,
       [Number(id_event_location)]
@@ -481,7 +446,6 @@ const createEvent = async (req, res) => {
       });
     }
 
-    // Insert
     const insert = await pool.query(
       `
       INSERT INTO events (
@@ -497,7 +461,7 @@ const createEvent = async (req, res) => {
         description.trim(),
         Number(id_event_category),
         Number(id_event_location),
-        start_date,                               // el front manda ISO/fecha válida
+        start_date,
         Number(duration_in_minutes),
         Number(price),
         enabled_for_enrollment ?? false,

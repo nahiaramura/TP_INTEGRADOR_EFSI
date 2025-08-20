@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/axios"; // cliente Axios con token automático
+import api from "../api/axios";
 
 const CrearUbicacionPage = () => {
   const [name, setName] = useState("");
@@ -16,7 +16,7 @@ const CrearUbicacionPage = () => {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const res = await api.get("/locations"); // asegúrate que este endpoint exista y devuelva [{ id, name }]
+        const res = await api.get("/locations");
         setLocations(res.data);
       } catch (error) {
         console.error("Error al obtener localidades:", error);

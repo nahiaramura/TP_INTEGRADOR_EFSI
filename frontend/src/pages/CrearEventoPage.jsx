@@ -16,12 +16,10 @@ const CrearEventoPage = () => {
   const [ubicaciones, setUbicaciones] = useState([]);
 
   useEffect(() => {
-    // Cargar categorías
     api.get("/event-category")
       .then(res => setCategorias(res.data))
       .catch(err => console.error("Error al cargar categorías", err));
 
-    // Cargar ubicaciones del usuario autenticado
     api.get("/event-location")
       .then(res => setUbicaciones(res.data))
       .catch(err => console.error("Error al cargar ubicaciones", err));

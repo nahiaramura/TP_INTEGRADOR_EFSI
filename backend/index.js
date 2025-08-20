@@ -6,7 +6,7 @@ import authRoutes from './routes/auth.routes.js';
 import eventRoutes from './routes/event.routes.js';
 import tagRoutes from './routes/tag.routes.js';
 import eventLocationRoutes from './routes/eventLocation.routes.js';
-import eventCategoryRoutes from './routes/eventCategory.routes.js'; // 👉 agregado
+import eventCategoryRoutes from './routes/eventCategory.routes.js';
 import locationRoutes from './routes/location.routes.js';
 
 dotenv.config();
@@ -20,7 +20,7 @@ app.use('/api/user', authRoutes);
 app.use('/api/event', eventRoutes);
 app.use('/api/tags', tagRoutes);
 app.use('/api/event-location', eventLocationRoutes);
-app.use('/api/event-category', eventCategoryRoutes); // 👉 agregado
+app.use('/api/event-category', eventCategoryRoutes);
 app.use("/api/locations", locationRoutes);
 
 

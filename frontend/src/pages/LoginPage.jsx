@@ -9,7 +9,7 @@ const LoginPage = () => {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext); // ✅ Usamos el contexto
+  const { login } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,16 +18,9 @@ const LoginPage = () => {
         username: email,
         password,
       });
-  
       console.log("Login Response:", res.data);
-  
-      // ✅ Guardamos el token en localStorage
       localStorage.setItem("token", res.data.token);
-  
-      // ✅ Seteamos token en el contexto (por si lo usás ahí también)
       login(res.data.token);
-  
-      // ✅ Redirigimos
       navigate("/eventos");
     } catch (error) {
       console.log(error);

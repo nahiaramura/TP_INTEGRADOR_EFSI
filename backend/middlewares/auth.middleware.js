@@ -1,4 +1,3 @@
-// middlewares/auth.middleware.js
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -18,8 +17,8 @@ export const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;        // { id, ... }
-    req.userId = decoded.id;   // 👈 compat para código que lo usa
+    req.user = decoded;
+    req.userId = decoded.id;
     return next();
   } catch (error) {
     return res.status(401).json({ success: false, message: "Unauthorized." });

@@ -1,11 +1,5 @@
-// controllers/eventLocation.controller.js
 import pool from "../db/index.js";
 
-/**
- * GET /api/event-location
- * Lista las ubicaciones creadas por el usuario autenticado
- * Query params opcionales: limit, offset
- */
 export const listEventLocations = async (req, res) => {
   try {
     const userId = req.user?.id || req.userId;
@@ -32,11 +26,6 @@ export const listEventLocations = async (req, res) => {
     return res.status(500).json({ message: "Error al obtener ubicaciones", error: error.message });
   }
 };
-/**
- * POST /api/event-location
- * Crea una nueva ubicación de evento para el usuario autenticado
- * Body: { name, full_address, max_capacity, latitude?, longitude?, id_location }
- */
 export const createEventLocation = async (req, res) => {
   try {
     const userId = req.user?.id || req.userId;
@@ -48,7 +37,7 @@ export const createEventLocation = async (req, res) => {
       max_capacity,
       latitude,
       longitude,
-      id_location, // FK a locations.id
+      id_location,
     } = req.body;
 
     if (!name || name.trim().length < 3) {
@@ -61,7 +50,6 @@ export const createEventLocation = async (req, res) => {
       return res.status(400).json({ message: "Capacidad máxima debe ser > 0." });
     }
 
-    // Verificar FK de locations
     const loc = await pool.query("SELECT id FROM locations WHERE id = $1", [Number(id_location)]);
     if (loc.rowCount === 0) return res.status(400).json({ message: "La localidad no existe." });
 
@@ -91,10 +79,6 @@ export const createEventLocation = async (req, res) => {
   }
 };
 
-/**
- * PUT /api/event-location/:id
- * Actualiza una ubicación propia
- */
 export const updateEventLocation = async (req, res) => {
   try {
     const userId = req.user?.id || req.userId;
@@ -107,7 +91,7 @@ export const updateEventLocation = async (req, res) => {
       max_capacity,
       latitude,
       longitude,
-      id_location, // opcional
+      id_location,
     } = req.body;
 
     if (!id || Number.isNaN(Number(id))) {
@@ -162,10 +146,6 @@ export const updateEventLocation = async (req, res) => {
   }
 };
 
-/**
- * DELETE /api/event-location/:id
- * Elimina una ubicación propia (si no está referenciada por eventos)
- */
 export const deleteEventLocation = async (req, res) => {
   try {
     const userId = req.user?.id || req.userId;
@@ -195,10 +175,6 @@ export const deleteEventLocation = async (req, res) => {
   }
 };
 
-/**
- * GET /api/location
- * Lista todas las localidades con su provincia (para poblar selects)
- */
 export const listAllLocationsWithProvince = async (req, res) => {
   try {
     const { rows } = await pool.query(`
