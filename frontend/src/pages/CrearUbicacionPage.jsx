@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 
@@ -8,45 +8,43 @@ const CrearUbicacionPage = () => {
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [maxCapacity, setMaxCapacity] = useState("");
-  const [locations, setLocations] = useState([]);
-  const [selectedLocationId, setSelectedLocationId] = useState("");
-
+  const [locationId, setLocationId] = useState(""); 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        const res = await api.get("/locations");
-        setLocations(res.data);
-      } catch (error) {
-        console.error("Error al obtener localidades:", error);
-      }
-    };
-
-    fetchLocations();
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!locationId || Number.isNaN(parseInt(locationId, 10))) {
+      alert("Ingresá un ID de localidad válido.");
+      return;
+    }
+    if (!maxCapacity || parseInt(maxCapacity, 10) <= 0) {
+      alert("Capacidad máxima debe ser > 0.");
+      return;
+    }
 
     const lat = parseFloat(latitude);
     const lng = parseFloat(longitude);
 
     try {
       await api.post("/event-location", {
-        name,
-        full_address: fullAddress,
-        latitude: isNaN(lat) ? null : lat,
-        longitude: isNaN(lng) ? null : lng,
-        id_location: parseInt(selectedLocationId),
-        max_capacity: parseInt(maxCapacity),
+        name: name.trim(),
+        full_address: fullAddress.trim(),
+        latitude: Number.isNaN(lat) ? null : lat,
+        longitude: Number.isNaN(lng) ? null : lng,
+        id_location: parseInt(locationId, 10),     
+        max_capacity: parseInt(maxCapacity, 10),
       });
 
       alert("Ubicación creada con éxito");
       navigate("/ubicaciones");
     } catch (error) {
       console.error("Error al crear ubicación:", error);
-      alert(error?.response?.data?.error || "Error al crear ubicación");
+      alert(
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        "Error al crear ubicación"
+      );
     }
   };
 
@@ -65,7 +63,7 @@ const CrearUbicacionPage = () => {
             <input value={fullAddress} onChange={(e) => setFullAddress(e.target.value)} required />
           </div>
 
-          <div className="grid" style={{gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))"}}>
+          <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
             <div className="form-row">
               <label>Latitud (opcional)</label>
               <input type="number" step="any" value={latitude} onChange={(e) => setLatitude(e.target.value)} />
@@ -76,19 +74,28 @@ const CrearUbicacionPage = () => {
             </div>
           </div>
 
-          <div className="grid" style={{gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))"}}>
+          <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
             <div className="form-row">
-              <label>Localidad</label>
-              <select value={selectedLocationId} onChange={(e) => setSelectedLocationId(e.target.value)} required>
-                <option value="">Seleccione una localidad</option>
-                {locations.map((loc) => (
-                  <option key={loc.id} value={loc.id}>{loc.name}</option>
-                ))}
-              </select>
+              <label>ID de localidad (obligatorio)</label>
+              <input
+                type="number"
+                value={locationId}
+                onChange={(e) => setLocationId(e.target.value)}
+                placeholder="Ej: 1"
+                required
+              />
+              <small>Ingresá el número de la localidad (tabla <code>locations</code>).</small>
             </div>
+
             <div className="form-row">
               <label>Capacidad máxima</label>
-              <input type="number" value={maxCapacity} onChange={(e) => setMaxCapacity(e.target.value)} required />
+              <input
+                type="number"
+                value={maxCapacity}
+                onChange={(e) => setMaxCapacity(e.target.value)}
+                min="1"
+                required
+              />
             </div>
           </div>
 

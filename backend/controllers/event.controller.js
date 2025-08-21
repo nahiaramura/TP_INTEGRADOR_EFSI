@@ -398,51 +398,80 @@ const getEnrollmentStatus = async (req, res) => {
   }
 };
 
-const createEvent = async (req, res) => {
-  const {
-    name,
-    description,
-    id_event_category,
-    id_event_location,
-    start_date,
-    duration_in_minutes,
-    price,
-    enabled_for_enrollment,
-    max_assistance
-  } = req.body;
+const safeInt = (v, def = 0) => {
+  const n = Number.parseInt(v, 10);
+  return Number.isFinite(n) ? n : def;
+};
+const safeNum = (v, def = 0) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : def;
+};
 
+const normalizeTs = (s) => {
+  if (!s) return null;
+  let str = String(s).replace("T", " ").trim();
+  if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/.test(str)) str += ":00";
+  if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$/.test(str)) return str;
+  return null; 
+};
+
+const createEvent = async (req, res) => {
   try {
+    const {
+      name,
+      description,
+      id_event_category,
+      id_event_location,
+      start_date,
+      duration_in_minutes,
+      price,
+      enabled_for_enrollment,
+      max_assistance,
+    } = req.body;
+
     if (!name || name.trim().length < 3) {
       return res.status(400).json({ success: false, message: "El nombre es obligatorio y debe tener al menos 3 caracteres." });
     }
     if (!description || description.trim().length < 3) {
       return res.status(400).json({ success: false, message: "La descripción es obligatoria y debe tener al menos 3 caracteres." });
     }
-    if (Number(duration_in_minutes) < 0 || Number(price) < 0) {
-      return res.status(400).json({ success: false, message: "El precio y la duración deben ser números positivos." });
-    }
-    if (Number(max_assistance) < 0) {
-      return res.status(400).json({ success: false, message: "max_assistance no puede ser negativo." });
-    }
     if (!req.user?.id) {
       return res.status(401).json({ success: false, message: "No autorizado. Usuario no encontrado en el token." });
+    }
+
+    const catId      = safeInt(id_event_category, -1);
+    const locId      = safeInt(id_event_location, -1);
+    const duration   = safeInt(duration_in_minutes, 0);
+    const priceNum   = safeNum(price, 0);
+    const maxAssist  = safeInt(max_assistance, 0);
+    const startLocal = normalizeTs(start_date);
+
+    if (catId <= 0) return res.status(400).json({ success: false, message: "Categoría inválida." });
+    if (locId <= 0) return res.status(400).json({ success: false, message: "Ubicación inválida." });
+    if (duration < 0 || priceNum < 0) {
+      return res.status(400).json({ success: false, message: "El precio y la duración deben ser números positivos." });
+    }
+    if (maxAssist < 0) {
+      return res.status(400).json({ success: false, message: "max_assistance no puede ser negativo." });
+    }
+    if (!startLocal) {
+      return res.status(400).json({ success: false, message: "Fecha/hora inválida. Formato esperado: YYYY-MM-DD HH:MM[:SS]" });
     }
 
     const id_creator_user = req.user.id;
 
     const locResult = await pool.query(
       `SELECT max_capacity FROM event_locations WHERE id = $1`,
-      [Number(id_event_location)]
+      [locId]
     );
     if (locResult.rowCount === 0) {
       return res.status(400).json({ success: false, message: "La ubicación del evento no existe." });
     }
-
-    const max_capacity = parseInt(locResult.rows[0].max_capacity, 10);
-    if (Number(max_assistance) > max_capacity) {
+    const max_capacity = safeInt(locResult.rows[0].max_capacity, 0);
+    if (maxAssist > max_capacity) {
       return res.status(400).json({
         success: false,
-        message: `max_assistance (${max_assistance}) no puede superar la capacidad del lugar (${max_capacity}).`
+        message: `max_assistance (${maxAssist}) no puede superar la capacidad del lugar (${max_capacity}).`,
       });
     }
 
@@ -453,27 +482,27 @@ const createEvent = async (req, res) => {
         start_date, duration_in_minutes, price,
         enabled_for_enrollment, max_assistance, id_creator_user
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      VALUES ($1,$2,$3,$4, to_timestamp($5, 'YYYY-MM-DD HH24:MI:SS')::timestamp, $6,$7,$8,$9,$10)
       RETURNING *
       `,
       [
         name.trim(),
         description.trim(),
-        Number(id_event_category),
-        Number(id_event_location),
-        start_date,
-        Number(duration_in_minutes),
-        Number(price),
-        enabled_for_enrollment ?? false,
-        Number(max_assistance),
-        id_creator_user
+        catId,
+        locId,
+        startLocal,                
+        duration,
+        priceNum,
+        !!enabled_for_enrollment,
+        maxAssist,
+        id_creator_user,
       ]
     );
 
     return res.status(201).json({
       success: true,
       message: "Evento creado correctamente.",
-      data: insert.rows[0]
+      data: insert.rows[0],
     });
   } catch (error) {
     console.error("createEvent error:", error);
