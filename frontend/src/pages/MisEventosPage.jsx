@@ -37,29 +37,47 @@ const MisEventosPage = () => {
     window.location.href = `/editar-evento/${id}`;
   };
 
+  const handleDesinscribirme = async (id) => {
+    try {
+      await api.delete(`/event/${id}/enrollment`);
+      // Refrescar listado por si cambia el estado mostrado
+      setEventos((prev) => prev.map(e => e.id === id ? { ...e, enrolled: false } : e));
+      setMensajeEliminar("");
+    } catch (err) {
+      const mensaje = err.response?.data?.message || "No se pudo cancelar la inscripción.";
+      setMensajeEliminar(mensaje);
+    }
+  };
+
   return (
-    <div>
-      <h1>Mis Eventos</h1>
+    <div className="container">
+      <h1 className="page-title">Mis eventos</h1>
 
       {mensajeEliminar && (
-        <p style={{ color: "red", marginTop: "10px" }}>{mensajeEliminar}</p>
+        <div className="alert alert-danger" style={{ marginTop: 10 }}>{mensajeEliminar}</div>
       )}
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <div className="alert alert-danger">{error}</div>}
 
       {!error && eventos.length === 0 ? (
-        <p>No tienes eventos creados aún.</p>
+        <div className="empty">No tienes eventos creados aún.</div>
       ) : (
-        <ul>
+        <div className="list">
           {eventos.map((evento) => (
-            <li key={evento.id}>
-              <strong>{evento.name}</strong> - {new Date(evento.start_date).toLocaleString()}
-              <br />
-              <button onClick={() => handleEditar(evento.id)}>Editar</button>
-              <button onClick={() => handleEliminar(evento.id)}>Eliminar</button>
-            </li>
+            <div className="card" key={evento.id}>
+              <h3 className="card-title">{evento.name}</h3>
+              <div className="card-subtle">{new Date(evento.start_date).toLocaleString()}</div>
+              {evento.location_name && <div className="mt-2">📍 {evento.location_name}</div>}
+              <div className="card-actions" style={{ justifyContent: "space-between" }}>
+                <div style={{display:"flex", gap:8, flexWrap:"wrap"}}>
+                  <button className="btn" onClick={() => handleEditar(evento.id)}>Editar</button>
+                  <button className="btn btn-danger" onClick={() => handleEliminar(evento.id)}>Eliminar</button>
+                </div>
+                <button className="btn btn-outline" onClick={() => handleDesinscribirme(evento.id)}>Desinscribirme</button>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

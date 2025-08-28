@@ -16,7 +16,7 @@ const Navbar = () => {
       <div className="container nav-inner">
         <div className="brand">
           <div className="brand-badge"><span>EV</span></div>
-          <Link to="/eventos">Eventos</Link>
+          <Link to="/eventos" style={{fontSize:16}}>Eventos</Link>
         </div>
 
         <nav className="nav-links">

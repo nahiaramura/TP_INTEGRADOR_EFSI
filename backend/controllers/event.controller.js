@@ -46,7 +46,7 @@ const listMyEvents = async (req, res) => {
 const listEvents = async (req, res) => {
   const limit  = parseInt(req.query.limit, 10)  || 15;
   const offset = parseInt(req.query.offset, 10) || 0;
-  const { name, startDate, tag } = req.query;
+  const { name, startDate, tag, upcoming } = req.query;
 
   try {
     let whereClauses = [];
@@ -63,6 +63,9 @@ const listEvents = async (req, res) => {
     if (startDate) {
       whereClauses.push(`DATE(e.start_date) = $${values.length + 1}`);
       values.push(startDate);
+    }
+    if (upcoming) {
+      whereClauses.push(`e.start_date >= NOW()`);
     }
     if (tag) {
       const tagsArray = Array.isArray(tag) ? tag : [tag];
@@ -338,8 +341,11 @@ const deleteEnrollment = async (req, res) => {
 
     const now = new Date();
     const eventDate = new Date(event.rows[0].start_date);
-    if (eventDate <= now) {
-      return res.status(400).json({ success: false, message: "No se puede eliminar la inscripción de un evento pasado o que es hoy." });
+    // Permitir cancelar el mismo día del evento, pero no si ya pasó
+    // Bloqueamos solo si la fecha del evento es estrictamente anterior al inicio del día actual
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (eventDate < startOfToday) {
+      return res.status(400).json({ success: false, message: "No se puede eliminar la inscripción de un evento pasado." });
     }
 
     const enrollment = await pool.query(

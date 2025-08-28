@@ -40,39 +40,61 @@ const EventoDetallePage = () => {
       await api.delete(`/event/${id}/enrollment`);
       setInscripto(false);
     } catch (err) {
-      alert("Error al cancelar inscripción");
+      const msg = err?.response?.data?.message || "Error al cancelar inscripción";
+      alert(msg);
     }
   };
 
-  if (!evento) return <p>Cargando evento...</p>;
+  if (!evento) return <div className="container"><div className="card">Cargando evento...</div></div>;
 
   const fecha = new Date(evento.start_date).toLocaleString("es-AR");
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>{evento.name}</h1>
-      <p><strong>Descripción:</strong> {evento.description}</p>
-      <p><strong>Fecha:</strong> {fecha}</p>
-      <p><strong>Duración:</strong> {evento.duration_in_minutes} minutos</p>
-      <p><strong>Precio:</strong> ${evento.price}</p>
-      <p><strong>Categoría:</strong> {evento.category_name}</p>
-      <p><strong>Ubicación:</strong> {evento.location_name}</p>
-      <p><strong>Dirección completa:</strong> {evento.full_address}</p>
-      <p><strong>Provincia:</strong> {evento.province}</p>
-      <p><strong>Localidad:</strong> {evento.locality}</p>
-      <p><strong>Creado por:</strong> {evento.creator_name}</p>
+    <div className="container">
+      <div className="card">
+        <h1 className="page-title" style={{ marginTop: 0 }}>{evento.name}</h1>
 
-      <p><strong>Tags:</strong> {evento.tags?.map(tag => tag.name).join(", ")}</p>
+        {evento.description && (
+          <p className="card-subtle" style={{ marginTop: -6 }}>{evento.description}</p>
+        )}
 
-      {isAuthenticated && (
-        <div style={{ marginTop: "20px" }}>
-          {inscripto ? (
-            <button onClick={handleCancelar}>Cancelar inscripción</button>
-          ) : (
-            <button onClick={handleInscribirse}>Inscribirme</button>
-          )}
+        <div className="grid" style={{gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", marginTop: 8}}>
+          <div><strong>Fecha</strong><div className="mt-2">{fecha}</div></div>
+          <div><strong>Duración</strong><div className="mt-2">{evento.duration_in_minutes} minutos</div></div>
+          <div><strong>Precio</strong><div className="mt-2">${evento.price}</div></div>
+          <div><strong>Categoría</strong><div className="mt-2">{evento.category_name}</div></div>
         </div>
-      )}
+
+        <div className="grid mt-3" style={{gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))"}}>
+          <div><strong>Ubicación</strong><div className="mt-2">{evento.location_name}</div></div>
+          <div><strong>Dirección</strong><div className="mt-2">{evento.full_address}</div></div>
+          <div><strong>Provincia</strong><div className="mt-2">{evento.province}</div></div>
+          <div><strong>Localidad</strong><div className="mt-2">{evento.locality}</div></div>
+        </div>
+
+        <div className="mt-3">
+          <strong>Tags</strong>
+          <div className="card-actions mt-2">
+            {evento.tags?.length ? (
+              evento.tags.map((tag) => (
+                <span key={tag.id} className="btn btn-outline" style={{ pointerEvents: 'none' }}>{tag.name}</span>
+              ))
+            ) : (
+              <span className="text-muted">Sin etiquetas</span>
+            )}
+          </div>
+        </div>
+
+        {isAuthenticated && (
+          <div className="card-actions" style={{ justifyContent: "flex-end" }}>
+            {inscripto ? (
+              <button className="btn btn-danger" onClick={handleCancelar}>Cancelar inscripción</button>
+            ) : (
+              <button className="btn btn-primary" onClick={handleInscribirse}>Inscribirme</button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

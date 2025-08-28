@@ -17,8 +17,11 @@ const EventosListPage = () => {
       if (filters.name) {
         params.append("name", filters.name);
       }
-      if (filters.startdate) {
-        params.append("startdate", filters.startdate);
+      if (filters.startDate) {
+        params.append("startDate", filters.startDate);
+      }
+      if (filters.upcoming) {
+        params.append("upcoming", "1");
       }
       if (filters.tags && filters.tags.length > 0) {
         filters.tags.forEach((tag) => params.append("tag", tag));
@@ -49,7 +52,17 @@ const EventosListPage = () => {
 
   return (
     <div className="container">
-      <h1 className="page-title">Eventos</h1>
+      <section className="hero">
+        <h1 className="hero-title">
+          <span className="gradient-text">Eventos</span> que inspiran
+        </h1>
+        <p className="hero-subtitle">Explora, filtra y descubre experiencias únicas. Diseñado con un estilo moderno y vibrante.</p>
+        <div className="card-actions mt-3">
+          <button className="btn btn-primary" onClick={() => { setPage(0); fetchEventos({}); }}>Explorar ahora</button>
+          <button className="btn btn-outline" onClick={() => { setPage(0); fetchEventos({ upcoming: true }); }}>Ver próximos</button>
+        </div>
+      </section>
+
       <BuscadorEventos onFiltrar={handleFiltro} />
 
       <div className="list mt-3">
